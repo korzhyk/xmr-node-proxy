@@ -850,7 +850,7 @@ function handleMinerData(method, params, ip, portData, sendReply, pushMessage, m
     // Check for ban here, so preconnected attackers can't continue to screw you
     if (ip in bans) {
         // Handle IP ban off clip.
-        sendReply("IP Address currently banned");
+        sendReply(null, { type: 'banned' });
         return;
     }
     switch (method) {
@@ -878,7 +878,7 @@ function handleMinerData(method, params, ip, portData, sendReply, pushMessage, m
             return minerId;
         case 'getjob':
             if (!miner) {
-                sendReply('Unauthenticated');
+                sendReply('invalid_site_key');
                 return;
             }
             miner.heartbeat();
@@ -889,7 +889,7 @@ function handleMinerData(method, params, ip, portData, sendReply, pushMessage, m
             break;
         case 'submit':
             if (!miner) {
-                sendReply('Unauthenticated');
+                sendReply('invalid_site_key');
                 return;
             }
             miner.heartbeat();
@@ -949,15 +949,16 @@ function handleMinerData(method, params, ip, portData, sendReply, pushMessage, m
             miner.shareTimeBuffer.enq(now - miner.lastShareTime);
             miner.lastShareTime = now;
 
-            sendReply(null, {status: 'OK'});
+            sendReply(null, { type: 'hash_accepted', hashes: miner.hashes });
             break;
         case 'keepalived':
             if (!miner) {
-                sendReply('Unauthenticated');
+                sendReply('invalid_site_key');
                 return;
             }
             sendReply(null, {
-                status: 'KEEPALIVED'
+                type: 'keepalived',
+                params: {}
             });
             break;
     }
@@ -986,7 +987,7 @@ function activatePorts() {
 
             let sendReply = function (error, result) {
                 try {
-                    let sendData = { jsonrpc: "2.0" };
+                    let sendData = {};
                     if (error) {                        
                         Object.assign(sendData, { type: 'error', params: { error } });
                     } else {
@@ -1006,7 +1007,6 @@ function activatePorts() {
             let pushMessage = function (method, params) {
                 try {
                     let sendData = JSON.stringify({
-                        jsonrpc: "2.0",
                         type: method,
                         params: params
                     });
@@ -1068,9 +1068,10 @@ function activatePorts() {
             activePorts.push(portData.port);
             console.log(global.threadName + "Started server on:", server.address());
         });
-        const wss = new ws.Server({ server, port: portData.port, path: portData.path })
-            .on('connection', socketConn)
-
+        server.on('error', function (error) {
+            console.error("HTTP/S server error: " + error)
+        });
+        new ws.Server({ server, path: portData.path }).on('connection', socketConn)
     });
 }
 
