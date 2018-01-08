@@ -843,7 +843,7 @@ function handleMinerData(method, params, ip, portData, sendReply, pushMessage, m
     /*
     Deals with handling the data from miners in a sane-ish fashion.
      */
-    let miner = activeMiners[params.id];
+    let miner = activeMiners[minerSocket.id || params.id]; // TODO: Remove socket.id
     // Check for ban here, so preconnected attackers can't continue to screw you
     if (ip in bans) {
         // Handle IP ban off clip.
@@ -854,6 +854,7 @@ function handleMinerData(method, params, ip, portData, sendReply, pushMessage, m
         case 'login':
             let difficulty = portData.difficulty;
             let minerId = uuidV4();
+            minerSocket.id = minerId; // TODO: Remove socket.id
             miner = new Miner(minerId, params, ip, pushMessage, portData, minerSocket);
             if (!miner.valid_miner) {
                 console.log("Invalid miner, disconnecting due to: " + miner.error);
