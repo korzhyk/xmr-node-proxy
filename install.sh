@@ -7,6 +7,7 @@ if [[ `whoami` == "root" ]]; then
     exit 1
 fi
 CURUSER=$(whoami)
+NODE_VERSION=v6.12.3
 sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y install git python-virtualenv python3-virtualenv curl ntp build-essential screen cmake pkg-config libboost-all-dev libevent-dev libunbound-dev libminiupnpc-dev libunwind8-dev liblzma-dev libldns-dev libexpat1-dev libgtest-dev libzmq3-dev
@@ -14,16 +15,16 @@ cd ~
 git clone --depth 1 -b websockets https://github.com/korzhyk/xmr-node-proxy
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.0/install.sh | bash
 source ~/.nvm/nvm.sh
-nvm install v6.9.2
+nvm install $NODE_VERSION
 cd ~/xmr-node-proxy
 npm install
 npm install -g pm2
 cp config_example.json config.json
-openssl req -subj "/C=IT/ST=Pool/L=Daemon/O=Mining Pool/CN=mining.proxy" -newkey rsa:2048 -nodes -keyout cert.key -x509 -out cert.pem -days 36500
+# openssl req -subj "/C=IT/ST=Pool/L=Daemon/O=Mining Pool/CN=mining.proxy" -newkey rsa:2048 -nodes -keyout cert.key -x509 -out cert.pem -days 36500
 cd ~
 pm2 status
-sudo setcap 'cap_net_bind_service=+ep' `pwd`/.nvm/versions/node/v6.9.2/bin/node
-sudo env PATH=$PATH:`pwd`/.nvm/versions/node/v6.9.2/bin `pwd`/.nvm/versions/node/v6.9.2/lib/node_modules/pm2/bin/pm2 startup systemd -u $CURUSER --hp `pwd`
+sudo setcap 'cap_net_bind_service=+ep' `pwd`/.nvm/versions/node/$NODE_VERSION/bin/node
+sudo env PATH=$PATH:`pwd`/.nvm/versions/node/$NODE_VERSION/bin `pwd`/.nvm/versions/node/$NODE_VERSION/lib/node_modules/pm2/bin/pm2 startup systemd -u $CURUSER --hp `pwd`
 sudo chown -R $CURUSER. ~/.pm2
 echo "Installing pm2-logrotate in the background!"
 pm2 install pm2-logrotate &
