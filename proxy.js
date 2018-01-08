@@ -949,7 +949,7 @@ function handleMinerData(method, params, ip, portData, sendReply, pushMessage, m
             miner.shareTimeBuffer.enq(now - miner.lastShareTime);
             miner.lastShareTime = now;
 
-            sendReply(null, { type: 'hash_accepted', hashes: miner.hashes });
+            sendReply(null, { type: 'hash_accepted', params: { hashes: miner.hashes } });
             break;
         case 'keepalived':
             if (!miner) {
