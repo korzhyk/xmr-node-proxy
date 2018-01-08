@@ -974,7 +974,7 @@ function activatePorts() {
         if (activePorts.indexOf(portData.port) !== -1) {
             return;
         }
-        let handleMessage = function (socket, jsonData, pushMessage, minerSocket) {
+        let handleMessage = function (socket, jsonData, pushMessage, minerSocket, ip) {
             if (!jsonData.type) {
                 console.warn('Miner RPC request missing RPC type');
                 return;
@@ -999,7 +999,7 @@ function activatePorts() {
                     debug.miners(`Error when sent to miner (sendReply): ${e.message}`);
                 }
             };
-            handleMinerData(jsonData.type, jsonData.params, socket.remoteAddress, portData, sendReply, pushMessage, minerSocket);
+            handleMinerData(jsonData.type, jsonData.params, ip, portData, sendReply, pushMessage, minerSocket);
         };
 
         function socketConn(socket, req) {
@@ -1026,7 +1026,7 @@ function activatePorts() {
                     socket.terminate();
                     return;
                 }
-                handleMessage(socket, jsonData, pushMessage, socket);
+                handleMessage(socket, jsonData, pushMessage, socket, req.connection.remoteAddress);
             })
             .on('error', function (err) {
                 if (err.code !== 'ECONNRESET') {
