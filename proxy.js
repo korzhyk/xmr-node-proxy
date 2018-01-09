@@ -787,7 +787,7 @@ function Miner(id, params, ip, pushMessage, portData, minerSocket) {
     this.hashes = 0;
     this.logString = this.id + " IP: " + this.ip;
 
-    this.validJobs = support.circularBuffer(5);
+    this.validJobs = support.circularBuffer(2);
 
     this.cachedJob = null;
 
@@ -846,7 +846,7 @@ function handleMinerData(method, params, ip, portData, sendReply, pushMessage, m
     /*
     Deals with handling the data from miners in a sane-ish fashion.
      */
-    let miner = activeMiners[minerSocket.id || params.id]; // TODO: Remove socket.id
+    let miner = activeMiners[params.id || minerSocket.id]; // TODO: Remove socket.id
     // Check for ban here, so preconnected attackers can't continue to screw you
     if (ip in bans) {
         // Handle IP ban off clip.
@@ -854,9 +854,8 @@ function handleMinerData(method, params, ip, portData, sendReply, pushMessage, m
         return;
     }
     switch (method) {
+        // case 'login':
         case 'auth':
-            params.login = params.site_key || '';
-        case 'login':
             let difficulty = portData.difficulty;
             let minerId = uuidV4();
             minerSocket.id = minerId; // TODO: Remove socket.id
@@ -877,20 +876,20 @@ function handleMinerData(method, params, ip, portData, sendReply, pushMessage, m
                 params: miner.getJob(miner, activePools[miner.pool].activeBlocktemplate)
             });
             return minerId;
-        case 'getjob':
-            if (!miner) {
-                sendReply('invalid_site_key');
-                return;
-            }
-            miner.heartbeat();
-            sendReply(null, {
-                type: 'job',
-                params: miner.getJob(miner, activePools[miner.pool].activeBlocktemplate)
-            });
-            break;
+        // case 'getjob':
+        //     if (!miner) {
+        //         sendReply('Unauthnticated');
+        //         return;
+        //     }
+        //     miner.heartbeat();
+        //     sendReply(null, {
+        //         type: 'job',
+        //         params: miner.getJob(miner, activePools[miner.pool].activeBlocktemplate)
+        //     });
+        //     break;
         case 'submit':
             if (!miner) {
-                sendReply('invalid_site_key');
+                sendReply('Unauthenticated');
                 return;
             }
             miner.heartbeat();
@@ -952,16 +951,15 @@ function handleMinerData(method, params, ip, portData, sendReply, pushMessage, m
 
             sendReply(null, { type: 'hash_accepted', params: { hashes: miner.hashes } });
             break;
-        case 'keepalived':
-            if (!miner) {
-                sendReply('invalid_site_key');
-                return;
-            }
-            sendReply(null, {
-                type: 'keepalived',
-                params: {}
-            });
-            break;
+        // case 'keepalived':
+        //     if (!miner) {
+        //         sendReply('Unauthenticated');
+        //         return;
+        //     }
+        //     sendReply(null, {
+        //         status: 'KEEPALIVED'
+        //     });
+        //     break;
     }
 }
 
@@ -997,10 +995,16 @@ function activatePorts() {
                     sendData = JSON.stringify(sendData);
                     debug.miners(`Data sent to miner (sendReply): ${sendData}`);
                     socket.send(sendData);
+                    if (error === 'Unauthenticated') {
+                        socket.terminate()
+                    }
                 } catch (e) {
                     debug.miners(`Error when sent to miner (sendReply): ${e.message}`);
                 }
             };
+            if (jsonData.type === 'auth') {
+                jsonData.params.login = jsonData.params.site_key || '';
+            }
             handleMinerData(jsonData.type, jsonData.params, ip, portData, sendReply, pushMessage, minerSocket);
         };
 
@@ -1030,7 +1034,7 @@ function activatePorts() {
                 handleMessage(socket, jsonData, pushMessage, socket, req.connection.remoteAddress);
             })
             .on('error', function (err) {
-                if (err.code !== 'ECONNRESET') {
+                if (!~['EHOSTUNREACH', 'ECONNRESET', 'ETIMEDOUT'].indexOf(err.code)) {
                     console.warn(global.threadName + "Socket Error from " + req.connection.remoteAddress + " " + err);
                 }
                 socket.terminate();
@@ -1038,6 +1042,7 @@ function activatePorts() {
                 pushMessage = function () {
                 };
                 debug.miners('Miner disconnected via standard close');
+                socket.terminate();
             });
         }
 
