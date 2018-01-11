@@ -787,7 +787,7 @@ function Miner(id, params, ip, pushMessage, portData, minerSocket) {
     this.hashes = 0;
     this.logString = this.id + " IP: " + this.ip;
 
-    this.validJobs = support.circularBuffer(2);
+    this.validJobs = support.circularBuffer(3);
 
     this.cachedJob = null;
 
@@ -846,7 +846,7 @@ function handleMinerData(method, params, ip, portData, sendReply, pushMessage, m
     /*
     Deals with handling the data from miners in a sane-ish fashion.
      */
-    let miner = activeMiners[params.id || minerSocket.id]; // TODO: Remove socket.id
+    let miner = activeMiners[params.id]; // TODO: Remove socket.id
     // Check for ban here, so preconnected attackers can't continue to screw you
     if (ip in bans) {
         // Handle IP ban off clip.
@@ -858,7 +858,6 @@ function handleMinerData(method, params, ip, portData, sendReply, pushMessage, m
         case 'auth':
             let difficulty = portData.difficulty;
             let minerId = uuidV4();
-            minerSocket.id = minerId; // TODO: Remove socket.id
             miner = new Miner(minerId, params, ip, pushMessage, portData, minerSocket);
             if (!miner.valid_miner) {
                 console.log("Invalid miner, disconnecting due to: " + miner.error);
