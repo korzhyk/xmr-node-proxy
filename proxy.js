@@ -846,7 +846,7 @@ function handleMinerData(method, params, ip, portData, sendReply, pushMessage, m
     /*
     Deals with handling the data from miners in a sane-ish fashion.
      */
-    let miner = activeMiners[params.id]; // TODO: Remove socket.id
+    let miner = activeMiners[params.id];
     // Check for ban here, so preconnected attackers can't continue to screw you
     if (ip in bans) {
         // Handle IP ban off clip.
