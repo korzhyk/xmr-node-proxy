@@ -32,11 +32,13 @@ wget -O - https://raw.githubusercontent.com/korzhyk/xmr-node-proxy/websockets/in
 
 ```shell
 cd ~/xmr-node-proxy/
-pm2 start proxy.js --name=proxy --log-date-format="YYYY-MM-DD HH:mm Z"
+pm2 start proxy.js --name=proxy --log-date-format="YYYY-MM-DDTHH:mm:ssZ"
 pm2 save
 ```
 You can check the status of your proxy by either issuing
-
+Telegraf logparser pattern:
+```
+%{TIMESTAMP_ISO8601:timestamp:ts}: The.*?%{NUMBER:miners:int}.*?%{NUMBER:hashrate:int}.*?%{NUMBER:diff:int}
 ```
 pm2 logs proxy
 ```
