@@ -78,7 +78,7 @@ Please check the [wiki](https://github.com/Snipa22/xmr-node-proxy/wiki/config_re
 The proxy is pre-configured for a 1% donation. This is easily toggled inside of it's configuration. If you'd like to make a one time donation, the addresses are as follows:
 
 * XMR - 44Ldv5GQQhP7K7t3ZBdZjkPA7Kg7dhHwk3ZM3RJqxxrecENSFx27Vq14NAMAd2HBvwEPUVVvydPRLcC69JCZDHLT2X5a4gr
-* BTC - 114DGE2jmPb5CP2RGKZn6u6xtccHhZGFmM
+* BTC - 15fkPTtN8cRXD3moKWDoXjuiTaS9FgA3UE
 
 ## Installation/Configuration Assistance
 
@@ -106,4 +106,6 @@ Please contact Snipa at: proxy_installs@snipanet.com or via IRC on irc.freenode.
 * [MoneroOcean.stream](https://moneroocean.stream)
 * [SECUmine.net](https://secumine.net)
 * [Chinaenter.cn](http://xmr.chinaenter.cn)
+* [XMRPool.eu](https://xmrpool.eu)
+
 If you'd like to have your pool added, please make a pull request here, or contact Snipa on IRC!
